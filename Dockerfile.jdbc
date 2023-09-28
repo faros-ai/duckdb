@@ -1,0 +1,16 @@
+FROM eclipse-temurin:11 AS builder
+
+RUN apt-get update && apt-get install -y cmake gcc g++ git ninja-build python3
+
+WORKDIR /jdbc
+
+COPY . .
+
+RUN GEN=ninja ENABLE_EXTENSION_AUTOLOADING=1 ENABLE_EXTENSION_AUTOINSTALL=1 \
+    BUILD_JDBC=1 BUILD_JEMALLOC=1 BUILD_JSON=1 FORCE_WARN_UNUSED=1 make
+
+FROM alpine AS exporter
+
+WORKDIR /jdbc
+
+COPY --from=builder /jdbc/build/release/tools/jdbc ./

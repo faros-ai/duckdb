@@ -1,0 +1,15 @@
+FROM eclipse-temurin:11 AS builder
+
+RUN apt-get update && apt-get install -y cmake ninja-build gcc g++ git
+
+WORKDIR /jdbc
+
+COPY . .
+
+RUN GEN=ninja BUILD_JDBC=1 BUILD_JEMALLOC=1 BUILD_JSON=1 FORCE_WARN_UNUSED=1 make
+
+FROM alpine AS exporter
+
+WORKDIR /jdbc
+
+COPY --from=builder /jdbc/build/release/tools/jdbc ./
